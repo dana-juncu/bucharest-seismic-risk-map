@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# intermediate/generated pipeline files -- regenerate with the pipeline/ scripts
+amccrs_raw.json
+buildings_for_geocoding.csv
+buildings_geocoded.csv
+geocode_cache.json
+
+.DS_Store
