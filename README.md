@@ -5,8 +5,7 @@ An interactive map of Bucharest's ~2,800 seismic-risk-classified buildings
 [RoPublicData](https://github.com/dana-juncu/ro-public-data) -- a keyless
 MCP server for Romanian public data.
 
-**[Open the live map](#)** *(update this link once GitHub Pages is enabled --
-see "Publishing" below)*
+🔗[Open the live map](https://dana-juncu.github.io/bucharest-seismic-risk-map/index.html)
 
 ## What it shows
 
