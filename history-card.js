@@ -3,6 +3,7 @@
  *
  * Load AFTER the map's inline script, and after history-data.js:
  *   <script src="history-data.js"></script>
+ *   <script src="history-photos.js"></script>   (optional: adds a photo to each card)
  *   <script src="history-card.js"></script>
  * (put both just before </body>). No other change to index.html is needed.
  *
@@ -47,6 +48,10 @@
     .popup .hist .src a:hover, .popup .hist .fix a:hover { text-decoration: underline; }
     .popup .hist .fix { margin-top: 8px; font-size: 12px; }
     .popup .hist .caveat { margin-top: 6px; font-size: 11.5px; color: var(--ink-muted); line-height: 1.4; }
+    .popup .ph { margin: 0 0 8px; }
+    .popup .ph img { display: block; width: 100%; max-height: 200px; object-fit: cover; background: var(--hairline); border-radius: 2px; }
+    .popup .ph .cap { font-size: 11px; color: var(--ink-muted); line-height: 1.35; margin-top: 3px; }
+    .popup .ph .cap a { color: var(--ink-secondary); }
     .hist-cov { font-size: 12.5px; color: var(--ink-secondary); line-height: 1.45; margin-top: 8px; }
     .hist-cov .bar { display: flex; height: 8px; margin: 6px 0 4px; border: 1px solid var(--black); }
     .hist-cov .bar i { display: block; height: 100%; }
@@ -93,9 +98,34 @@
       <div class="fix"><a href="${issueUrl(b)}" target="_blank" rel="noopener">Spot a mistake or know more? →</a></div></div>`;
   }
 
+  /* ---------- photo (optional: needs history-photos.js) ---------- */
+  const LICENSE_URLS = {
+    "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "CC BY 2.0": "https://creativecommons.org/licenses/by/2.0/",
+    "CC BY 3.0": "https://creativecommons.org/licenses/by/3.0/",
+    "CC BY 3.0 pl": "https://creativecommons.org/licenses/by/3.0/pl/",
+    "CC BY-SA 2.0": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "CC BY-SA 3.0": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "CC BY-SA 3.0 ro": "https://creativecommons.org/licenses/by-sa/3.0/ro/",
+    "CC BY-SA 4.0": "https://creativecommons.org/licenses/by-sa/4.0/",
+  };
+  function photoHtml(b) {
+    if (typeof PHOTOS === "undefined" || !PHOTOS[b.id]) return "";
+    const [file, author, lic] = PHOTOS[b.id];
+    const page = "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(file.replace(/ /g, "_"));
+    const src = "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(file) + "?width=360";
+    const licTxt = LICENSE_URLS[lic]
+      ? `<a href="${LICENSE_URLS[lic]}" target="_blank" rel="noopener">${escapeHtml(lic)}</a>`
+      : escapeHtml(lic);
+    return `<div class="ph"><a href="${page}" target="_blank" rel="noopener"><img src="${src}" loading="lazy" alt="Photo of ${escapeHtml(b.addr)}" onerror="this.closest('.ph').style.display='none'"></a>
+      <div class="cap">Photo: ${escapeHtml(author)}, ${licTxt} · <a href="${page}" target="_blank" rel="noopener">Wikimedia Commons</a>. May show the building or its street front — see the Commons page.</div></div>`;
+  }
+
   const basePopup = popupHtml;
   popupHtml = function (b) {
-    const html = basePopup(b);
+    let html = basePopup(b);
+    const ph = photoHtml(b);
+    if (ph) html = html.replace('<div class="popup">', '<div class="popup">' + ph);
     const i = html.lastIndexOf("</div>");
     return html.slice(0, i) + historyHtml(b) + html.slice(i);
   };
