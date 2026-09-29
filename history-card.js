@@ -131,7 +131,7 @@
   /* Manual photo picks: building id -> Commons file name. Author and licence are looked up from
    * Commons when the card is opened, and the photo is hidden unless the licence is free. */
   const PHOTO_OVERRIDES = {
-    "820": "Palatul Universit\u0103\u0163ii din Bucure\u015fti.jpg"
+    /* e.g. "123": "File name on Commons.jpg" */
   };
   const FREE_LIC = /^(cc0|cc[ -]by|public domain|pd)/i;
   function overrideHtml(b, file) {
