@@ -109,8 +109,28 @@
     "CC BY-SA 3.0 ro": "https://creativecommons.org/licenses/by-sa/3.0/ro/",
     "CC BY-SA 4.0": "https://creativecommons.org/licenses/by-sa/4.0/",
   };
+  /* Safeguards against photos of the wrong building.
+   * 1) PHOTO_EXCLUDE: ids whose photo was reported wrong (add more here; or delete the id from history-photos.js).
+   * 2) Same-side check: Bucharest streets number odd on one side, even on the other. If the photo's
+   *    house number and the registry address number differ in parity, it shows the opposite side: hide it. */
+  const PHOTO_EXCLUDE = new Set(["820"]);
+  function regNumbers(addr) {
+    const m = String(addr).match(/(\d+)\s*[A-Za-z]?\s*(?:[÷–\-\/]\s*(\d+)\s*[A-Za-z]?)?\s*$/);
+    return m ? [parseInt(m[1], 10), m[2] ? parseInt(m[2], 10) : null] : null;
+  }
+  function fileNumber(file) {
+    const m = file.match(/^(\d+)\s*[A-Za-z]?\s/) || file.match(/\s(\d+)\s*[A-Za-z]?(?:\s*\(\d+\))?\.\w+$/);
+    return m ? parseInt(m[1], 10) : null;
+  }
+  function sameSide(b, file) {
+    const r = regNumbers(b.addr), f = fileNumber(file);
+    if (!r || f == null) return true;               /* cannot tell: keep */
+    if (r[1] != null && (r[0] % 2) !== (r[1] % 2)) return true; /* range mixes both sides: keep */
+    return (r[0] % 2) === (f % 2);
+  }
   function photoHtml(b) {
-    if (typeof PHOTOS === "undefined" || !PHOTOS[b.id]) return "";
+    if (typeof PHOTOS === "undefined" || !PHOTOS[b.id] || PHOTO_EXCLUDE.has(String(b.id))) return "";
+    if (!sameSide(b, PHOTOS[b.id][0])) return "";
     const [file, author, lic] = PHOTOS[b.id];
     const page = "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(file.replace(/ /g, "_"));
     const src = "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(file) + "?width=360";
