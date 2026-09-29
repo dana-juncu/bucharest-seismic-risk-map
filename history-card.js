@@ -128,7 +128,36 @@
     if (r[1] != null && (r[0] % 2) !== (r[1] % 2)) return true; /* range mixes both sides: keep */
     return (r[0] % 2) === (f % 2);
   }
+  /* Manual photo picks: building id -> Commons file name. Author and licence are looked up from
+   * Commons when the card is opened, and the photo is hidden unless the licence is free. */
+  const PHOTO_OVERRIDES = {
+    "820": "Palatul Universit\u0103\u0163ii din Bucure\u015fti.jpg"
+  };
+  const FREE_LIC = /^(cc0|cc[ -]by|public domain|pd)/i;
+  function overrideHtml(b, file) {
+    const page = "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(file.replace(/ /g, "_"));
+    const src = "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(file) + "?width=360";
+    return `<div class="ph" data-ov="${escapeHtml(file)}"><a href="${page}" target="_blank" rel="noopener"><img src="${src}" loading="lazy" alt="Photo of ${escapeHtml(b.addr)}" onerror="this.closest('.ph').style.display='none'"></a>
+      <div class="cap"><a href="${page}" target="_blank" rel="noopener">Photo: Wikimedia Commons</a></div></div>`;
+  }
+  new MutationObserver(() => {
+    document.querySelectorAll(".ph[data-ov]:not([data-done])").forEach((el) => {
+      el.setAttribute("data-done", "1");
+      const file = el.getAttribute("data-ov");
+      fetch("https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiprop=extmetadata&titles=" + encodeURIComponent("File:" + file))
+        .then((r) => r.json()).then((d) => {
+          const pg = Object.values(d.query.pages)[0], md = pg.imageinfo && pg.imageinfo[0].extmetadata;
+          const lic = md && md.LicenseShortName && md.LicenseShortName.value;
+          if (!lic || !FREE_LIC.test(lic)) { el.style.display = "none"; return; }
+          const who = ((md.Artist && md.Artist.value) || "Unknown").replace(/<[^>]+>/g, "").trim().slice(0, 60);
+          const cap = el.querySelector(".cap");
+          cap.textContent = "Photo: " + who + ", " + lic + " \u00b7 Wikimedia Commons";
+        }).catch(() => {});
+    });
+  }).observe(document.body, { childList: true, subtree: true });
+
   function photoHtml(b) {
+    if (PHOTO_OVERRIDES[b.id]) return overrideHtml(b, PHOTO_OVERRIDES[b.id]);
     if (typeof PHOTOS === "undefined" || !PHOTOS[b.id] || PHOTO_EXCLUDE.has(String(b.id))) return "";
     if (!sameSide(b, PHOTOS[b.id][0])) return "";
     const [file, author, lic] = PHOTOS[b.id];
