@@ -62,7 +62,7 @@ Geocoding respects Nominatim's one-request-per-second policy, so a full run take
 
 ## Good to know
 
-- About 39% of registry rows carry a formal RsI to RsIV class. Most of the rest are flagged but not yet formally classified, and about 4% have been retrofitted. The map shows these as the separate categories they are.
+- About 39% of registry rows carry a formal RsI to RsIV class. Most of the rest carry only an emergency category (U1, U2 or U3) from the 1990s, which the map shows separately, about 150 have no code at all, and about 4% have been retrofitted. The map shows these as the separate categories they are.
 - The registry's "Built" year is the year of the current structure, which historical sources may date differently.
 - Photos are loaded from Wikimedia Commons when a card opens, each with its author and licence. Some may show a neighbouring building. Please report any you spot.
 
