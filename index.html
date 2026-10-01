@@ -30,6 +30,9 @@
     --rs3: #EB3344;
     --rs4: #F27D88;
     --consolidated: #0CA30C;
+    --u1: #B35900;
+    --u2: #E08E1B;
+    --u3: #F0C46B;
     --pending: #93918a;
 
     --font-display: "Barlow Condensed", system-ui, sans-serif;
@@ -512,8 +515,12 @@
           <div class="text"><b>Consolidated.</b> Already fixed — this building was flagged in the past but has since been structurally reinforced.</div>
         </div>
         <div class="legend-item">
+          <span class="swatch" style="background:var(--u1)"></span>
+          <div class="text"><b>Urgency U1 / U2 / U3.</b> An emergency category given in 1991–1997, before today's classes existed. It set a deadline of 2, 5 or 10 years to strengthen the building, and U1 is the most urgent. It is not a risk class, and these buildings need a new assessment to get an RsI–RsIV class.</div>
+        </div>
+        <div class="legend-item">
           <span class="swatch" style="background:var(--pending)"></span>
-          <div class="text"><b>Not yet classified.</b> Flagged for review, but no engineer has assigned it a formal risk class yet — its real risk level isn't known.</div>
+          <div class="text"><b>Not classified, no code.</b> Listed by AMCCRS without a risk class or an urgency category — its real risk level isn't known.</div>
         </div>
       </div>
       <p class="legend-source">Simplified from Romania's official seismic risk classification (Ordonanța 20/1994) — see <a href="https://www.avocatnet.ro/articol_72460/Clasele-de-risc-seismic-%C8%99i-expertizele-tehnice-explicate-de-inginerii-constructori.html" target="_blank" rel="noopener">avocatnet.ro</a> for the full explanation. Not a substitute for a professional assessment of any specific building.</p>
@@ -559,8 +566,21 @@ const RISK_META = {
   RsIII:        { label: "RsIII",                   color: "var(--rs3)",         hex: "#EB3344", order: 2 },
   RsIV:         { label: "RsIV — lowest risk",       color: "var(--rs4)",         hex: "#F27D88", order: 3 },
   consolidated: { label: "Consolidated (retrofitted)", color: "var(--consolidated)", hex: "#0CA30C", order: 4 },
-  pending:      { label: "Not yet classified",       color: "var(--pending)",     hex: "#93918A", order: 5 },
+  U1:           { label: "Urgency category U1",      color: "var(--u1)",          hex: "#B35900", order: 5, hint: "Emergency category from the 1990s, given under rules that are no longer in force. U1 is the most urgent of the three. It needs a new expert assessment to get an RsI–RsIV class." },
+  U2:           { label: "Urgency category U2",      color: "var(--u2)",          hex: "#E08E1B", order: 6, hint: "Emergency category from the 1990s, given under rules that are no longer in force. It needs a new expert assessment to get an RsI–RsIV class." },
+  U3:           { label: "Urgency category U3",      color: "var(--u3)",          hex: "#F0C46B", order: 7, hint: "Emergency category from the 1990s, given under rules that are no longer in force. It needs a new expert assessment to get an RsI–RsIV class." },
+  pending:      { label: "Not classified, no code",  color: "var(--pending)",     hex: "#93918A", order: 8, hint: "Listed by AMCCRS without a risk class or an urgency category." },
 };
+// The registry puts the 1990s urgency code (U1/U2/U3) in the notes field. Split the big
+// "not yet classified" group by that code. A building with several codes (e.g. "U2. U3")
+// takes the most urgent one; the notes on the card still show them all.
+function splitUrgency(list) {
+  for (const b of list) {
+    if (b.risk !== "pending") continue;
+    const codes = String(b.notes || "").match(/\bU\s*([123])\b/gi);
+    if (codes) b.risk = "U" + Math.min(...codes.map((c) => parseInt(c.replace(/\D/g, ""), 10)));
+  }
+}
 const DEFAULT_ON = new Set(["RsI", "RsII", "RsIII", "RsIV"]);
 const SECTORS = ["Sector 1", "Sector 2", "Sector 3", "Sector 4", "Sector 5", "Sector 6"];
 
@@ -634,10 +654,12 @@ function popupHtml(b) {
     ["Expertise year", b.expertYear || "—"],
   ];
   const dl = rows.map(([k, v]) => `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>`).join("");
+  const hint = meta.hint ? `<div class="notes">${escapeHtml(meta.hint)}</div>` : "";
   const notes = b.notes ? `<div class="notes">${escapeHtml(b.notes)}</div>` : "";
   return `<div class="popup">
     <div class="addr">${escapeHtml(b.addr)}</div>
     <span class="risk-pill" style="background:${meta.hex}">${meta.label}</span>
+    ${hint}
     <dl>${dl}</dl>
     ${notes}
   </div>`;
@@ -697,7 +719,7 @@ function updateStats(visibleCount) {
   statsEl.innerHTML = `
     <div class="stat"><div class="n">${buildings.length.toLocaleString()}</div><div class="l">Total flagged buildings</div></div>
     <div class="stat"><div class="n">${classified.toLocaleString()}</div><div class="l">Formally classified RsI–IV</div></div>
-    <div class="stat"><div class="n">${(counts.pending || 0).toLocaleString()}</div><div class="l">Not yet classified</div></div>
+    <div class="stat"><div class="n">${((counts.pending || 0) + (counts.U1 || 0) + (counts.U2 || 0) + (counts.U3 || 0)).toLocaleString()}</div><div class="l">Not yet classified</div></div>
     <div class="stat"><div class="n">${visibleCount.toLocaleString()}</div><div class="l">Shown on map now</div></div>
   `;
 }
@@ -800,6 +822,7 @@ document.getElementById("search").addEventListener("input", (e) => {
 
 if (typeof BUILDINGS !== "undefined" && Array.isArray(BUILDINGS)) {
   buildings = BUILDINGS;
+  splitUrgency(buildings);
   updatePrecisionFooter();
   buildFilterPanels();
   rebuildMarkers();
