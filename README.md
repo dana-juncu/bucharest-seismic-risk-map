@@ -49,7 +49,7 @@ pull as AMCCRS's registry and OSM's coverage both change over time -- this
 isn't a static snapshot, it's a pipeline meant to be re-run.
 
 A real finding from building this: AMCCRS's own risk-class field is
-messier than the registry's documentation suggests. Only ~59% of rows are
+messier than the registry's documentation suggests. Only ~39% of rows are
 actually classified into RsI-RsIV; the largest single bucket (~57%) is a
 "flagged, not yet formally classified" status, and ~4% are buildings that
 were at risk but have since been retrofitted ("consolidated"). The map
