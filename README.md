@@ -12,14 +12,15 @@ Bucharest sits in one of Europe's most active seismic zones, and the city's offi
 
 - **Find any building.** Search by address, or filter by risk class and sector.
 - **Understand the risk.** Colours follow the official classes, from RsI (highest risk) to RsIV, plus retrofitted ("consolidated") and not-yet-classified buildings. A plain-language legend explains what each class means.
-- **Read a building's story.** Open a popup to see the year built, height, the expert who assessed it, and, where public sources have it, the architect, style, historical owner, heritage listing and a photo. Every fact links to its source.
+- **Read a building's story.** Open a popup to see the year built, height, the expert who assessed it, and, where public sources have it, the architect, style, historical owner and a photo. Every fact links to its source.
+- **See heritage status.** About 300 buildings are on the official Monuments List (national or local importance), and about 400 more sit on streets in protected built zones. The card shows both, flags buildings that are listed monuments *and* seismic class RsI to RsIII, and a filter shows only heritage buildings.
 - **Spot the gaps.** A filter shows how well each building is documented, and a coverage bar shows how much is still unknown. Addresses that could not be placed reliably are listed separately instead of being guessed at.
 - **Use it on your phone.** The layout adapts, and the building list opens as a sheet so the map stays fully visible.
 
 ## Why it is different
 
 - **Honest about uncertainty.** The map says "partly documented" or "no history found yet" rather than filling gaps. Low-confidence facts are marked "unverified".
-- **Everything is cited.** Registry data comes from AMCCRS; history comes from heritage lists, Wikipedia, Wikimedia Commons, Wikidata and OpenStreetMap. No street-level imagery is analysed.
+- **Everything is cited.** Registry data comes from AMCCRS; history comes from the official Monuments List 2015, City Hall protected-zone documents, Wikipedia, Wikimedia Commons, Wikidata and OpenStreetMap. No street-level imagery is analysed.
 - **Free and open.** A static site with no server, no tracking and no API keys. The code is MIT-licensed.
 
 ## Help improve it
@@ -44,7 +45,7 @@ To host your own copy on GitHub Pages: Settings, Pages, "Deploy from a branch", 
 |---|---|
 | `index.html` | The map and interface (Leaflet) |
 | `buildings.js` | The 2,796 registry buildings with risk class and coordinates |
-| `history-data.js`, `history-photos.js`, `history-card.js` | The optional history layer: data, photos and the popup card |
+| `history-data.js`, `history-photos.js`, `heritage-data.js`, `history-card.js` | The optional history layer: history, photos, monument and protected-zone data, and the popup card |
 | `pipeline/` | Scripts that rebuild `buildings.js` from the live AMCCRS registry |
 
 The registry is pulled through [RoPublicData](https://github.com/dana-juncu/ro-public-data), a keyless MCP server for Romanian public data, then cleaned, geocoded with OpenStreetMap Nominatim and written to `buildings.js`:
@@ -69,6 +70,7 @@ Geocoding respects Nominatim's one-request-per-second policy, so a full run take
 
 - **Building safety records:** AMCCRS (Autoritatea Municipală pentru Consolidarea Clădirilor cu Risc Seismic), via RoPublicData.
 - **Geocoding and building data:** © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, [ODbL](https://opendatacommons.org/licenses/odbl/).
+- **Heritage:** the official List of Historic Monuments 2015 (Ministry of Culture / Institutul Național al Patrimoniului, Monitorul Oficial 113 bis/2016) and the protected built zones approved by the Bucharest City Council (HCGMB 279/2000). Monuments are matched by street and number; protected zones only by street name, because the official zone documents are plans without coordinates.
 - **Building history:** [Wikipedia](https://ro.wikipedia.org) (CC BY-SA 4.0), [Wikimedia Commons](https://commons.wikimedia.org) (licence per photo, shown on each card) and [Wikidata](https://www.wikidata.org) (CC0).
 - **Basemap tiles:** Esri.
 
