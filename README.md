@@ -15,6 +15,7 @@ Bucharest sits in one of Europe's most active seismic zones, and the city's offi
 - **Read a building's story.** Open a popup to see the year built, height, the expert who assessed it, and, where public sources have it, the architect, style, historical owner and a photo. Every fact links to its source.
 - **See heritage status.** About 300 buildings are on the official Monuments List (national or local importance), and about 400 more sit on streets in protected built zones. The card shows both, flags buildings that are listed monuments *and* seismic class RsI to RsIII, and a filter shows only heritage buildings.
 - **Spot the gaps.** A filter shows how well each building is documented, and a coverage bar shows how much is still unknown. Addresses that could not be placed reliably are listed separately instead of being guessed at.
+- **Take the data with you.** A "Download the data" section exports the buildings on screen, or all 2,796, as CSV or GeoJSON, including the history and heritage columns. Free to reuse with attribution.
 - **Use it on your phone.** The layout adapts, and the building list opens as a sheet so the map stays fully visible.
 
 ## Why it is different
@@ -46,6 +47,7 @@ To host your own copy on GitHub Pages: Settings, Pages, "Deploy from a branch", 
 | `index.html` | The map and interface (Leaflet) |
 | `buildings.js` | The 2,796 registry buildings with risk class and coordinates |
 | `history-data.js`, `history-photos.js`, `heritage-data.js`, `history-card.js` | The optional history layer: history, photos, monument and protected-zone data, and the popup card |
+| `export-data.js` | The CSV and GeoJSON download buttons |
 | `pipeline/` | Scripts that rebuild `buildings.js` from the live AMCCRS registry |
 
 The registry is pulled through [RoPublicData](https://github.com/dana-juncu/ro-public-data), a keyless MCP server for Romanian public data, then cleaned, geocoded with OpenStreetMap Nominatim and written to `buildings.js`:
