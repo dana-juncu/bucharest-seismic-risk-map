@@ -615,15 +615,22 @@ const map = L.map("map", { zoomControl: true }).setView([44.4325, 26.1039], 13);
 // policy. Esri's classic REST tile service is still free and keyless as of
 // this build — it's already a clean light-gray canvas, so no extra filter
 // needed. Note the {z}/{y}/{x} order (Esri, not the usual {z}/{x}/{y}).
-L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
-  attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ",
-  maxNativeZoom: 16,
-  maxZoom: 19,
-}).addTo(map);
-L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}", {
-  maxNativeZoom: 16,
-  maxZoom: 19,
-}).addTo(map);
+// Base maps (switch with the layer button, top right). All Esri, free and keyless.
+// Light gray stays the default so the risk colours stand out; "Streets" and
+// "Satellite" go deeper (zoom 19) for checking building outlines on the ground.
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+const baseLight = L.layerGroup([
+  L.tileLayer(ESRI + "Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxNativeZoom: 16, maxZoom: 20 }),
+  L.tileLayer(ESRI + "Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxNativeZoom: 16, maxZoom: 20 }),
+], { attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ" });
+const baseStreets = L.tileLayer(ESRI + "World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+  maxNativeZoom: 19, maxZoom: 20, attribution: "Tiles &copy; Esri &mdash; Esri, HERE, Garmin, OpenStreetMap contributors" });
+const baseSat = L.layerGroup([
+  L.tileLayer(ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxNativeZoom: 19, maxZoom: 20 }),
+  L.tileLayer(ESRI + "Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}", { maxNativeZoom: 19, maxZoom: 20 }),
+], { attribution: "Imagery &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community" });
+baseLight.addTo(map);
+L.control.layers({ "Light": baseLight, "Streets": baseStreets, "Satellite": baseSat }, null, { position: "topright", collapsed: true }).addTo(map);
 
 clusterGroup = L.markerClusterGroup({
   maxClusterRadius: 45,
