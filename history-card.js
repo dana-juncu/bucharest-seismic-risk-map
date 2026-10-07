@@ -62,10 +62,10 @@
     .popup .ph .cap { font-size: 11px; color: var(--ink-muted); line-height: 1.35; margin-top: 3px; }
     .popup .ph .cap a { color: var(--ink-secondary); }
     .hist-cov { font-size: 12.5px; color: var(--ink-secondary); line-height: 1.45; margin-top: 8px; }
-    .hist-cov .bar { display: flex; height: 8px; margin: 6px 0 4px; border: 1px solid var(--black); }
-    .hist-cov .bar i { display: block; height: 100%; }
-    .hist-cov .bar .d { background: var(--black); }
-    .hist-cov .bar .p { background: repeating-linear-gradient(45deg, var(--black) 0 2px, var(--white) 2px 5px); }
+    .callout .bar, .hist-cov .bar { display: flex; height: 8px; margin: 8px 0 8px; border: 1px solid var(--black); }
+    .callout .bar i, .hist-cov .bar i { display: block; height: 100%; }
+    .callout .bar .d, .hist-cov .bar .d { background: var(--black); }
+    .callout .bar .p, .hist-cov .bar .p { background: repeating-linear-gradient(45deg, var(--black) 0 2px, var(--white) 2px 5px); }
   `;
   document.head.appendChild(css);
 
@@ -250,6 +250,29 @@
         History comes from public sources (heritage lists, Wikipedia, Wikimedia Commons, OpenStreetMap); every fact links to its source.
       </div>`;
     anchor.parentElement.insertAdjacentElement("afterend", box);
+    /* the coverage note is information, not a filter: show it in the right-hand info panel, styled like its other notes */
+    const cov = box.querySelector(".hist-cov"), info = document.getElementById("info-inner");
+    if (cov && info) {
+      cov.className = "callout";
+      const notes = info.querySelectorAll(".callout");
+      const after = notes.length ? notes[notes.length - 1] : null;
+      if (after) after.insertAdjacentElement("afterend", cov); else info.insertBefore(cov, info.querySelector("footer"));
+    }
+    /* "what the filters mean": one entry per filter category on the left, shown in the info panel */
+    if (info && !document.getElementById("filter-guide")) {
+      const item = (head, txt) => `<div class="legend-item" style="display:block;margin:0 0 10px"><div style="margin-bottom:3px;font-size:14px;font-family:var(--font-body)">${head}</div><div class="text">${txt}</div></div>`;
+      const g = document.createElement("div");
+      g.id = "filter-guide";
+      g.innerHTML = `<hr class="divider" style="margin:0 0 16px">
+        <div class="section-label">What the other filters mean</div>
+        ${["d", "p", "u"].map((k) => item(`<span class="hist-badge ${k}">${LEVELS[k].label}</span>`, escapeHtml(LEVELS[k].hint))).join("")}
+        ${hasHer ? item('<b>Listed monuments</b>', "Building is on the Official List of Historic Monuments (2015, Ministry of Culture). Its card shows the monument code and name.")
+          + item('<b>In a protected zone</b>', "The street is part of a built protected zone declared by Bucharest City Hall (HCGMB 279/2000). Matched by street name only, so a zone may cover just part of a long street.") : ""}
+        ${item('<b>Sector</b>', "The administrative sector (1–6) written in the registry.")}`;
+      const lg = info.querySelector(".legend-list");
+      const lgBox = lg && lg.parentElement;
+      if (lgBox) lgBox.insertAdjacentElement("afterend", g); else info.insertBefore(g, info.firstChild);
+    }
     if (hasHer) {
       const nm = BUILDINGS.filter((b) => isMon(b.id)).length, nz = BUILDINGS.filter((b) => isZone(b.id)).length;
       const r1 = BUILDINGS.filter((b) => b.risk === "RsI"), r1m = r1.filter((b) => isMon(b.id)).length;
@@ -264,6 +287,8 @@
         <div class="hist-cov">${r1m} of the ${r1.length} buildings in the highest seismic class (RsI) are listed monuments.
           Sources: Official Monuments List 2015 and City Hall protected-zone documents. Tick a box to show only those buildings.</div>`;
       box.insertAdjacentElement("afterend", hb);
+      const hc = hb.querySelector(".hist-cov"), lastNote = info && [...info.querySelectorAll(".callout")].pop();
+      if (hc && lastNote) { hc.className = "callout"; lastNote.insertAdjacentElement("afterend", hc); }
       hb.querySelectorAll("input[data-her]").forEach((cb) => {
         cb.addEventListener("change", () => { herOnly[cb.getAttribute("data-her")] = cb.checked; rebuildMarkers(); });
       });
