@@ -50,7 +50,7 @@
 
   .app {
     display: grid;
-    grid-template-columns: 380px 1fr;
+    grid-template-columns: 380px 1fr 330px;
     height: 100vh;
   }
 
@@ -63,6 +63,16 @@
     flex-direction: column;
     gap: 20px;
   }
+
+  .infopanel {
+    background: var(--surface);
+    border-left: 1px solid var(--hairline);
+    overflow-y: auto;
+    padding: 24px 22px 18px;
+  }
+  .info-inner { display: flex; flex-direction: column; gap: 20px; min-height: 100%; }
+  .callout a { color: var(--ink-secondary); }
+  @media (max-width: 1250px) { .app { grid-template-columns: 340px 1fr 290px; } }
 
   .kicker {
     font-family: var(--font-mono);
@@ -84,7 +94,7 @@
   }
 
   .sub {
-    font-size: 15px;
+    font-size: 12.5px;
     line-height: 1.5;
     color: var(--ink-secondary);
     margin: 0;
@@ -401,6 +411,7 @@
   }
 
   @media (max-width: 860px) {
+    .infopanel { display: none; }
     .mobile-topbar { display: flex; }
     .backdrop { display: block; }
     .backdrop.show { opacity: 1; pointer-events: auto; }
@@ -475,10 +486,6 @@
 
     <div class="stats" id="stats"></div>
 
-    <div class="callout">
-      <b>Only 43% of flagged buildings actually have a confirmed risk class.</b> The rest are marked "urgent category" but not yet formally graded RsI–RsIV — that's the single biggest group on this map. Toggle "Not yet classified" below to see them.
-    </div>
-
     <div>
       <div class="section-label">Search</div>
       <input type="search" id="search" placeholder="Street name, e.g. Academiei">
@@ -491,6 +498,28 @@
 
     <hr class="divider">
 
+    <div>
+      <div class="section-label">Sector</div>
+      <div class="sector-grid" id="sector-filters"></div>
+    </div>
+
+    <hr class="divider">
+
+    <div>
+      <button type="button" id="unmatched-toggle" class="unmatched-toggle">
+        <span id="unmatched-toggle-label">Unmatched addresses</span>
+        <span class="chevron" id="unmatched-chevron">▾</span>
+      </button>
+      <p class="unmatched-hint">Not shown on the map — their address couldn't be matched to a real location (typo in the source data, or a street missing from OpenStreetMap), so rather than guess we list them here instead.</p>
+      <div id="unmatched-list" class="unmatched-list" hidden></div>
+    </div>
+
+  </aside>
+
+  <main id="map"></main>
+
+  <aside class="infopanel" id="infopanel">
+    <div class="info-inner" id="info-inner">
     <div>
       <div class="section-label">What the risk classes mean</div>
       <div class="legend-list">
@@ -526,34 +555,20 @@
       <p class="legend-source">Simplified from Romania's official seismic risk classification (Ordonanța 20/1994) — see <a href="https://www.avocatnet.ro/articol_72460/Clasele-de-risc-seismic-%C8%99i-expertizele-tehnice-explicate-de-inginerii-constructori.html" target="_blank" rel="noopener">avocatnet.ro</a> for the full explanation. Not a substitute for a professional assessment of any specific building.</p>
     </div>
 
-    <hr class="divider">
-
-    <div>
-      <div class="section-label">Sector</div>
-      <div class="sector-grid" id="sector-filters"></div>
+    <div class="callout">
+      <b>Only 43% of flagged buildings actually have a confirmed risk class.</b> The rest are marked "urgent category" but not yet formally graded RsI–RsIV — that's the single biggest group on this map. Use the risk status filter on the left to show or hide them.
     </div>
 
-    <hr class="divider">
-
-    <div>
-      <button type="button" id="unmatched-toggle" class="unmatched-toggle">
-        <span id="unmatched-toggle-label">Unmatched addresses</span>
-        <span class="chevron" id="unmatched-chevron">▾</span>
-      </button>
-      <p class="unmatched-hint">Not shown on the map — their address couldn't be matched to a real location (typo in the source data, or a street missing from OpenStreetMap), so rather than guess we list them here instead.</p>
-      <div id="unmatched-list" class="unmatched-list" hidden></div>
-    </div>
 
     <footer>
       <p>2,796 buildings, AMCCRS (Autoritatea Municipală pentru Consolidarea Clădirilor cu Risc Seismic), pulled live via <a href="https://github.com/dana-juncu/ro-public-data" target="_blank" rel="noopener">RoPublicData</a>.</p>
-      <p id="precision-footer">Addresses geocoded via OpenStreetMap Nominatim; unmatched ones are listed, not guessed at, in the sidebar above.</p>
+      <p id="precision-footer">Addresses geocoded via OpenStreetMap Nominatim; unmatched ones are listed, not guessed at, in the list on the left.</p>
       <p>Building history: heritage lists and articles from <a href="https://ro.wikipedia.org" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA), photos and categories from <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a> (each photo credited on its card), data from Wikidata and <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.</p>
       <p>Independent, unofficial, non-commercial. Not a safety assessment — for a building's current authoritative status, consult AMCCRS or Primăria Municipiului București directly.</p>
       <p>Built by <a href="https://linkedin.com/in/danajuncu" target="_blank" rel="noopener">Dana Juncu</a>.</p>
     </footer>
+    </div>
   </aside>
-
-  <main id="map"></main>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -605,6 +620,16 @@ function closeSidebar() {
   sidebarEl.classList.remove("open");
   backdropEl.classList.remove("show");
 }
+// Desktop: legend, notes and sources live in the right-hand panel. Mobile has one sheet,
+// so the same block is moved to the end of it.
+const infoInner = document.getElementById("info-inner"), infoPanel = document.getElementById("infopanel");
+const mqMobile = window.matchMedia("(max-width: 860px)");
+function placeInfo() {
+  if (mqMobile.matches) sidebarEl.appendChild(infoInner); else infoPanel.appendChild(infoInner);
+}
+placeInfo();
+mqMobile.addEventListener("change", placeInfo);
+window.addEventListener("load", placeInfo);
 document.getElementById("open-sidebar-btn").addEventListener("click", openSidebar);
 document.getElementById("close-sidebar-btn").addEventListener("click", closeSidebar);
 backdropEl.addEventListener("click", closeSidebar);
@@ -842,10 +867,10 @@ if (typeof BUILDINGS !== "undefined" && Array.isArray(BUILDINGS)) {
 <script src="history-data.js?v=4"></script>
 <script src="heritage-data.js?v=4"></script>
 <script src="history-photos.js?v=4"></script>
-<script src="history-card.js?v=4"></script>
-<script src="export-data.js?v=1"></script>
+<script src="history-card.js?v=7"></script>
+<script src="export-data.js?v=2"></script>
 <script src="footprints.js?v=1"></script>
-<script src="outlines.js?v=2"></script>
+<script src="outlines.js?v=3"></script>
 
 </body>
 </html>
